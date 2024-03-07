@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -37,15 +38,17 @@ func (l *LogEntry) Insert(entry LogEntry) error {
 	collections := client.Database("logs").Collection("logs")
 
 	// insert entry to collections
-	_, err := collections.InsertOne(context.TODO(), LogEntry{
+	log.Println(fmt.Sprintf("Name: %s\nData: %s\n", entry.Name, entry.Data))
+	result, err := collections.InsertOne(context.TODO(), LogEntry{
 		Name:      entry.Name,
 		Data:      entry.Data,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	})
+	log.Println(result)
 
 	if err != nil {
-		log.Printf("Error inserting into log: ", err)
+		log.Println("Error inserting into log: ", err)
 		return err
 	}
 	return nil

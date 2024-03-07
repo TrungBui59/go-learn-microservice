@@ -10,7 +10,7 @@ all: up_build start
 ## up: starts all containers in the background without forcing build
 up:
 	@echo "Starting Docker images..."
-	docker-compose up -d
+	docker compose up -d
 	@echo "Docker images started!"
 
 ## up_build: stops docker-compose (if running), builds all projects and starts docker compose
@@ -24,7 +24,7 @@ up_build: build_broker build_auth build_logger
 ## down: stop docker compose
 down:
 	@echo "Stopping docker compose..."
-	docker-compose down
+	docker compose down
 	@echo "Done!"
 
 ## build_auth: builds the authentication binary as a linux executable
@@ -69,4 +69,6 @@ clean: stop down
 	@echo "Deleting authentication"
 	cd ../authentication-service && rm -rf ./${AUTH_BINARY}
 	@echo "Delete DB"
-	cd db-data && sudo rm -rf *
+	sudo rm -rf ./db-data
+	mkdir -p db-data/postgres
+	mkdir -p db-data/mongo

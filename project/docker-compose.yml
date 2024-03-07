@@ -56,7 +56,7 @@ services:
     build:
       context: ./../logger-service
       dockerfile: ./../logger-service/logger-service.dockerfile
-    restart: always # always restart
+    restart: always
     deploy:
       mode: replicated
       replicas: 1
