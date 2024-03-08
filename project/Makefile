@@ -72,3 +72,6 @@ clean: stop down
 	sudo rm -rf ./db-data
 	mkdir -p db-data/postgres
 	mkdir -p db-data/mongo
+
+clean_cache: clean
+	docker system prune -a --volumes
