@@ -65,3 +65,20 @@ services:
     ports:
       - "8025:8025"
       - "1025:1025"
+  mail-service:
+    build:
+      context: ./../mail-service
+      dockerfile: ./../mail-service/mail-service.dockerfile
+    environment:
+      MAIL_PORT: 8025
+      MAIL_DOMAIN: localhost
+      MAIL_HOST: mailhog
+      MAIL_USERNAME: ""
+      MAIL_PASSWORD: ""
+      MAIL_ENCRYPTION: tls
+      FROM_NAME: "Trung Bui"
+      FROM_ADDRESS: trungbui.fake@example.com
+    restart: always
+    deploy:
+      mode: replicated
+      replicas: 1
