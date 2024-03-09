@@ -70,7 +70,7 @@ services:
       context: ./../mail-service
       dockerfile: ./../mail-service/mail-service.dockerfile
     environment:
-      MAIL_PORT: 8025
+      MAIL_PORT: 1025
       MAIL_DOMAIN: localhost
       MAIL_HOST: mailhog
       MAIL_USERNAME: ""

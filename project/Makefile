@@ -72,6 +72,10 @@ clean: stop down
 	cd ../broker-service && rm -rf ./${BROKER_BINARY}
 	@echo "Deleting authentication"
 	cd ../authentication-service && rm -rf ./${AUTH_BINARY}
+	@echo "Deleting Logger"
+	cd ../logger-service && rm -rf ./${LOGGER_BINARY}
+	@echo "Deleting Mailer"
+	cd ../mail-service && rm -rf ./${MAILER_BINARY}
 	@echo "Delete DB"
 	sudo rm -rf ./db-data
 	mkdir -p db-data/postgres
