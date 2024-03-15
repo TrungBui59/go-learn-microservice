@@ -147,37 +147,6 @@ func (app *Config) authenticate(w http.ResponseWriter, a AuthPayload) {
 	app.writeJSON(w, http.StatusAccepted, payload)
 }
 
-//func (app *Config) sendMail(w http.ResponseWriter, msg MailPayload) {
-//	// create json
-//	jsonData, _ := json.MarshalIndent(msg, "", "\t")
-//
-//	// call the service
-//	mailServiceUrl := "http://mail-service/send"
-//	request, err := http.NewRequest("POST", mailServiceUrl, bytes.NewBuffer(jsonData))
-//	if err != nil {
-//		app.errorJSON(w, err)
-//		return
-//	}
-//
-//	request.Header.Set("Content-Type", "application/json")
-//	client := &http.Client{}
-//	response, err := client.Do(request)
-//	if err != nil {
-//		app.errorJSON(w, err)
-//		return
-//	} else if response.StatusCode != http.StatusAccepted {
-//		app.errorJSON(w, errors.New("Error calling mail service"))
-//	}
-//	defer response.Body.Close()
-//
-//	// send back json
-//	var payload jsonResponse
-//	payload.Error = false
-//	payload.Message = fmt.Sprintf("Message sent to %s", msg.To)
-//
-//	app.writeJSON(w, http.StatusAccepted, payload)
-//}
-
 func (app *Config) sendMail(w http.ResponseWriter, msg MailPayload) {
 	jsonData, _ := json.MarshalIndent(msg, "", "\t")
 
