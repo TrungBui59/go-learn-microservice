@@ -81,6 +81,8 @@ clean: stop down
 	cd ../logger-service && rm -rf ./${LOGGER_BINARY}
 	@echo "Deleting Mailer"
 	cd ../mail-service && rm -rf ./${MAILER_BINARY}
+	@echo "Deleting Listener"
+	cd ../listener-service && rm -rf ./${LISTENER_BINARY}
 	@echo "Delete DB"
 	sudo rm -rf ./db-data
 	mkdir -p db-data/postgres
