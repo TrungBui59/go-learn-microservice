@@ -1,63 +1,51 @@
 package main
 
 import (
-	"fmt"
 	amqp "github.com/rabbitmq/amqp091-go"
-	"listener-service/event"
 	"log"
 	"math"
-	"os"
 	"time"
 )
 
 func main() {
-	// try to connect to rabbitMQ
-	rabbitConn, err := connect()
+	// try to connect to rabbitmq
+	connection, err := connect()
 	if err != nil {
-		log.Println(err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
-	defer rabbitConn.Close()
-	// start listening for messages
-	log.Println("Listening and consuming RabbitMQ messages")
-	// create consumer to consume the queue
-	consumer, err := event.NewConsumer(rabbitConn)
-	if err != nil {
-		panic(err)
-	}
+	log.Println("Connected to RabbitMQ")
+	defer connection.Close()
+	// start to listening for messages
+
+	// create consumer
 
 	// watch the queue and consume events
-	err = consumer.Listen([]string{"log.INFO", "log.WARNING", "log.ERROR"})
-	if err != nil {
-		log.Println(err)
-	}
 }
 
 func connect() (*amqp.Connection, error) {
 	var counts int64
-	var backoff = 1 * time.Second
+	var backOff = 1 * time.Second
 	var connection *amqp.Connection
 
 	// dont continue until rabbit is ready
 	for {
-		c, err := amqp.Dial("amqp://guest:guest@rabbitmq")
+		c, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
 		if err != nil {
-			fmt.Println("RabbitMQ not yet ready ... ")
+			log.Printf("Failed to connect to RabbitMQ: %s", err)
 			counts++
 		} else {
-			log.Println("Connected to RabbitMQ")
 			connection = c
 			break
 		}
 
-		if counts > 5 {
-			fmt.Println(err)
+		if counts >= 5 {
+			log.Printf("Cannot connect after 5 retries")
 			return nil, err
 		}
 
-		backoff = time.Duration(math.Pow(float64(counts), 2)) * time.Second
-		log.Println("Backing off for: ", backoff.Seconds())
-		time.Sleep(backoff)
+		backOff = time.Duration(math.Pow(float64(counts), 2)) * time.Second
+		log.Printf("Sleeping %v", backOff)
+		time.Sleep(backOff)
 	}
 	return connection, nil
 }
