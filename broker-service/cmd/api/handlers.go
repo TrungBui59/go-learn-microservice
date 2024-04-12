@@ -1,6 +1,7 @@
 package main
 
 import (
+	"broker-service/event"
 	"bytes"
 	"encoding/json"
 	"errors"
@@ -54,12 +55,42 @@ func (app *Config) HandleSubmission(w http.ResponseWriter, r *http.Request) {
 	case "auth":
 		app.authenticate(w, requestPayload.Auth)
 	case "log":
-		app.logItem(w, requestPayload.Log)
+		app.logEventViaRabbit(w, requestPayload.Log)
 	case "mail":
 		app.sendMail(w, requestPayload.Mail)
 	default:
 		app.errorJSON(w, errors.New("unknown action!"))
 	}
+}
+
+// push to the rabbit queue for log(replacing logItem)
+func (app *Config) logEventViaRabbit(w http.ResponseWriter, entry LogPayload) {
+	err := app.pushToQueue(entry.Name, entry.Data)
+	if err != nil {
+		app.errorJSON(w, err)
+	}
+	var payload jsonResponse
+	payload.Error = false
+	payload.Message = "logged via RabbitMQ"
+	app.writeJSON(w, http.StatusAccepted, payload)
+}
+
+func (app *Config) pushToQueue(name, msg string) error {
+	emitter, err := event.NewEventEmitter(app.Rabbit)
+	if err != nil {
+		return err
+	}
+	payload := LogPayload{
+		Name: name,
+		Data: msg,
+	}
+
+	j, _ := json.MarshalIndent(&payload, "", "\t")
+	err = emitter.Push(string(j), "log.INFO")
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (app *Config) logItem(w http.ResponseWriter, entry LogPayload) {
