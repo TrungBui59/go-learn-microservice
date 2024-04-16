@@ -7,6 +7,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"net/rpc"
 	"strconv"
 )
 
@@ -34,6 +35,11 @@ type MailPayload struct {
 	Message string `json:"message"`
 }
 
+type CustomRPCPayload struct {
+	Name string `json:"name"`
+	Data string `json:"data"`
+}
+
 func (app *Config) Broker(w http.ResponseWriter, r *http.Request) {
 	payload := jsonResponse{
 		Error:   false,
@@ -50,17 +56,46 @@ func (app *Config) HandleSubmission(w http.ResponseWriter, r *http.Request) {
 		app.errorJSON(w, err)
 		return
 	}
-
+	log.Println(requestPayload)
 	switch requestPayload.Action {
 	case "auth":
 		app.authenticate(w, requestPayload.Auth)
 	case "log":
-		app.logEventViaRabbit(w, requestPayload.Log)
+		app.logEventViaRPC(w, requestPayload.Log)
 	case "mail":
 		app.sendMail(w, requestPayload.Mail)
 	default:
 		app.errorJSON(w, errors.New("unknown action!"))
 	}
+}
+
+// log using RPC
+func (app *Config) logEventViaRPC(w http.ResponseWriter, payload LogPayload) {
+	client, err := rpc.Dial("tcp", "logger-service:5001")
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	defer client.Close()
+	rpcPayload := CustomRPCPayload{
+		Name: payload.Name,
+		Data: payload.Data,
+	}
+	var result string
+
+	err = client.Call("RPCServer.LogInfo", rpcPayload, &result)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	res := jsonResponse{
+		Error:   false,
+		Message: result,
+	}
+
+	app.writeJSON(w, http.StatusOK, res)
 }
 
 // push to the rabbit queue for log(replacing logItem)
@@ -139,6 +174,7 @@ func (app *Config) authenticate(w http.ResponseWriter, a AuthPayload) {
 	request.Header.Set("Content-Type", "application/json")
 	client := &http.Client{}
 	response, err := client.Do(request)
+
 	if err != nil {
 		app.errorJSON(w, err)
 		return
